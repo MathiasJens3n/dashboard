@@ -6,14 +6,16 @@ import 'package:flutter/material.dart';
 import 'package:matrix_gesture_detector/matrix_gesture_detector.dart';
 import 'package:photo_manager/photo_manager.dart';
 
+//Creates state for the home screen
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  HomeScreenState createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+//Home screen state
+class HomeScreenState extends State<HomeScreen> {
   final List<Uint8List> _images = [];
   final List<Matrix4> _imageTransforms = [];
 
@@ -36,19 +38,20 @@ class _HomeScreenState extends State<HomeScreen> {
       List<AssetEntity> images =
           await albums[0].getAssetListPaged(page: 0, size: 10000);
 
-      List<Uint8List> realImages = await _convertToU8List(images);
+      List<Uint8List> availableImages = await _convertToU8List(images);
 
-      _showImageDialog(realImages);
+      _showImageDialog(availableImages);
     } else {
       print("Permission to gallery denied");
     }
   }
 
   //Takes a list of the type AssetEntity and converts it to a list of Uint8
-  Future<List<Uint8List>> _convertToU8List(List<AssetEntity> images) async {
+  Future<List<Uint8List>> _convertToU8List(
+      List<AssetEntity> availableImages) async {
     List<Uint8List> uint8List = [];
 
-    for (AssetEntity asset in images) {
+    for (AssetEntity asset in availableImages) {
       Uint8List data = await asset.originBytes as Uint8List;
       uint8List.add(data);
     }
@@ -69,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
               scrollDirection: Axis.horizontal,
               itemCount: images.length,
               itemBuilder: (BuildContext context, int index) {
-                //Registers if an image is tapped and adds it to the list.
+                //Registers if an image is tapped and adds it to the list shown on the home screen.
                 return GestureDetector(
                   onTap: () {
                     setState(() {
@@ -122,9 +125,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemCount: _images.length,
                 itemBuilder: (BuildContext context, int index) {
                   return MatrixGestureDetector(
+                    //rotation is not being used
                     onMatrixUpdate: (Matrix4 matrix, Matrix4? translationMatrix,
                         Matrix4? scaleMatrix, Matrix4 rotation) {
-                      // Apply scaling transformation
                       if (scaleMatrix != null) {
                         final double newScale = matrix.getMaxScaleOnAxis();
                         setState(() {
@@ -133,12 +136,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         });
                       }
                     },
-                    shouldRotate: false, // Disable rotation
-                    shouldScale: true, // Enable scaling
-                    shouldTranslate: true, // Enable translation
+                    shouldRotate: false,
+                    shouldScale: true,
+                    shouldTranslate: true,
                     child: Transform(
-                      transform:
-                          _imageTransforms[index], // Apply the image's matrix
+                      transform: _imageTransforms[index],
                       child: Image.memory(
                         _images[index],
                         width: 200 * _currentScale,

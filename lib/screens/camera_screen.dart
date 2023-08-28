@@ -4,6 +4,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:camera/camera.dart';
 import 'package:gallery_saver/gallery_saver.dart';
 
+//Creates state for the camera screen
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
 
@@ -11,15 +12,16 @@ class CameraScreen extends StatefulWidget {
   CameraScreenState createState() => CameraScreenState();
 }
 
+//Camera state
 class CameraScreenState extends State<CameraScreen> {
   late CameraController _controller;
-  List<CameraDescription> cameras = [];
 
   //Initialises the back camera of the phone
   Future<void> initializeCamera() async {
-    requestCameraPermission();
+    List<CameraDescription> cameras = [];
+
     cameras = await availableCameras();
-    //Assigns the back camera as the controller
+    //Assigns the phones back camera as the controller
     _controller = CameraController(cameras[1], ResolutionPreset.medium);
 
     await _controller.initialize();
@@ -30,10 +32,10 @@ class CameraScreenState extends State<CameraScreen> {
     await Permission.camera.request();
   }
 
-  //When the take photo button is pressed, and calls saveImage() to save the photo in the gallery
-  Future<void> takePhoto() async {
+  //Caputures a photo, when the take photo button is pressed
+  Future<XFile> takePhoto() async {
     final photo = await _controller.takePicture();
-    await saveImage(photo);
+    return photo;
   }
 
   //Saves the photo in gallery and disposes the cameracontroller
@@ -43,12 +45,10 @@ class CameraScreenState extends State<CameraScreen> {
     } catch (e) {
       print('Error saving image: $e');
     }
-    dispose();
   }
 
   //Gets rids of the cameracontroller object
-  @override
-  void dispose() {
+  void disposeCamera() {
     _controller.dispose();
     super.dispose();
   }
@@ -65,6 +65,7 @@ class CameraScreenState extends State<CameraScreen> {
       ),
       drawer: const AppMenu(),
       body: FutureBuilder<void>(
+        initialData: requestCameraPermission(),
         future: initializeCamera(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
@@ -75,7 +76,11 @@ class CameraScreenState extends State<CameraScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: takePhoto,
+        onPressed: () async {
+          XFile photo = await takePhoto();
+          await saveImage(photo);
+          disposeCamera();
+        },
         child: const Icon(Icons.camera),
       ),
     );

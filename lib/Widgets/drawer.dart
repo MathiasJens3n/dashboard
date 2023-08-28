@@ -43,13 +43,6 @@ class AppMenu extends StatelessWidget {
                   MaterialPageRoute(builder: (context) => const CameraScreen()),
                 );
               }),
-          ListTile(
-            leading: const Icon(Icons.dashboard),
-            title: const Text('Dashboard'),
-            onTap: () {
-              // Add functionality for the Settings menu item here
-            },
-          ),
         ],
       );
 }
